@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8"> <!-- Define a codificação de caracteres como UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Configura a largura da página para ser igual à largura da tela do dispositivo -->
+    <title>Dashboard - ESP32</title> <!-- Define o título da página -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            /* Define a fonte padrão da página */
+            margin: 0;
+            /* Remove as margens padrão do corpo da página */
+            display: flex;
+            /* Define que os elementos dentro do corpo serão organizados em um layout flexível */
+            background-color: #f5f5f5;
+            /* Define a cor de fundo do corpo da página */
+            overflow: hidden;
+            /* Oculta qualquer conteúdo que exceda os limites do corpo */
+        }
+
+        .sidebar {
+            width: 250px;
+            /* Define a largura da barra lateral */
+            background-color: #333;
+            /* Define a cor de fundo da barra lateral */
+            color: white;
+            /* Define a cor do texto na barra lateral */
+            height: 100vh;
+            /* Define a altura da barra lateral para ocupar toda a altura da janela de visualização */
+            display: flex;
+            /* Organiza os elementos da barra lateral em um layout flexível */
+            flex-direction: column;
+            /* Define que os elementos da barra lateral serão organizados em coluna */
+            align-items: flex-start;
+            /* Alinha os elementos ao início do contêiner da barra lateral */
+            border-radius: 0 45px 45px 0;
+            /* Define bordas arredondadas na barra lateral */
+            transition: width 0.3s ease;
+            /* Adiciona uma transição suave ao alterar a largura da barra lateral */
+            overflow: hidden;
+            /* Oculta qualquer conteúdo que exceda os limites da barra lateral */
+            padding-top: 20px;
+            /* Adiciona preenchimento superior dentro da barra lateral */
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+            /* Define a largura da barra lateral quando ela está colapsada */
+        }
+
+        .sidebar h2 {
+            font-size: 1.5em;
+            /* Define o tamanho da fonte para o título dentro da barra lateral */
+            margin: 0 0 20px 20px;
+            /* Adiciona margem ao redor do título */
+        }
+
+        .sidebar a,
+        .sidebar button {
+            padding: 10px 15px;
+            /* Adiciona preenchimento dentro dos links e botões */
+            margin: 5px 20px;
+            /* Adiciona margem ao redor dos links e botões */
+            text-decoration: none;
+            /* Remove a decoração de texto (como sublinhado) dos links */
+            color: white;
+            /* Define a cor do texto dos links e botões */
+            background: none;
+            /* Remove o fundo padrão dos links e botões */
+            border: none;
+            /* Remove a borda padrão dos links e botões */
+            cursor: pointer;
+            /* Muda o cursor para indicar que o elemento é clicável */
+            text-align: left;
+            /* Alinha o texto à esquerda dentro dos links e botões */
+            width: 100%;
+            /* Define a largura dos links e botões para ocupar 100% do contêiner */
+            font-size: 1em;
+            /* Define o tamanho da fonte dos links e botões */
+            transition: background-color 0.3s;
+            /* Adiciona uma transição suave para a mudança de cor de fundo */
+            border-radius: 10px 0px 0px 10px;
+            /* Define bordas arredondadas para links e botões */
+        }
+
+        .sidebar a:hover,
+        .sidebar button:hover {
+            background-color: #5B9BD5;
+            /* Define a cor de fundo ao passar o mouse sobre links e botões */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            /* Adiciona uma sombra ao passar o mouse sobre links e botões */
+        }
+
+        .content {
+            flex-grow: 1;
+            /* Permite que a área de conteúdo cresça para ocupar o espaço disponível */
+            padding: 30px;
+            /* Adiciona preenchimento ao redor da área de conteúdo */
+            background-color: #f5f5f5;
+            /* Define a cor de fundo da área de conteúdo */
+        }
+
+        .filter-section {
+            display: none;
+            /* Oculta a seção de filtro por padrão */
+            margin-bottom: 20px;
+            /* Adiciona margem inferior à seção de filtro */
+            background-color: #ffffff;
+            /* Define a cor de fundo da seção de filtro */
+            padding: 10px;
+            /* Adiciona preenchimento dentro da seção de filtro */
+            border-radius: 10px;
+            /* Define bordas arredondadas para a seção de filtro */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            /* Adiciona uma sombra à seção de filtro */
+        }
+
+        table {
+            width: 100%;
+            /* Define a largura da tabela para ocupar 100% do contêiner */
+            border-collapse: collapse;
+            /* Remove o espaçamento entre as células da tabela */
+            background-color: #fff;
+            /* Define a cor de fundo da tabela */
+            border-radius: 10px;
+            /* Define bordas arredondadas para a tabela */
+            overflow: hidden;
+            /* Oculta qualquer conteúdo que exceda os limites da tabela */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            /* Adiciona uma sombra à tabela */
+        }
+
+        th,td {
+            border: 1px solid #ddd;
+            margin: 50PX;
+            padding: 10px;
+            text-align: center;
+            width: 150px;
+            /* Alinhar texto ao centro */
+        }
+
+        th {
+            background-color: #5B9BD5;
+            /* Define a cor de fundo para as células de cabeçalho da tabela */
+            color: white;
+            /* Define a cor do texto nas células de cabeçalho da tabela */
+        }
+
+        .areaTabela {
+            max-height: 550px;
+            /* Define a altura máxima para a área da tabela com rolagem */
+            overflow-y: auto;
+            /* Adiciona rolagem vertical para a área da tabela */
+        }
+
+        h1 {
+            font-size: 2em;
+            /* Define o tamanho da fonte para os títulos principais */
+            margin-bottom: 20px;
+            /* Adiciona margem inferior aos títulos principais */
+            color: #333;
+            /* Define a cor do texto para os títulos principais */
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                /* Define a largura da barra lateral para ocupar toda a largura da tela em dispositivos menores */
+                height: auto;
+                /* Define a altura da barra lateral como automática em dispositivos menores */
+                position: static;
+                /* Define a posição da barra lateral como estática em dispositivos menores */
+                border-radius: 0;
+                /* Remove bordas arredondadas em dispositivos menores */
+            }
+
+            .sidebar.collapsed {
+                width: 100%;
+                /* Define a largura da barra lateral como 100% quando colapsada em dispositivos menores */
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar" id="sidebar"> <!-- Define a barra lateral e atribui um ID -->
+        <h2>Eletrogate</h2> <!-- Título da barra lateral -->
+        <button onclick="showData('atual')">Dados Atual</button> <!-- Botão para mostrar dados atuais -->
+        <button onclick="showData('dashboard')">Dashboard</button> <!-- Botão para mostrar o dashboard -->
+    </div>
+    <div class="content"> <!-- Define a área de conteúdo principal -->
+        <div id="dashboard-content"> <!-- Contêiner para o conteúdo do dashboard -->
+            <h1 id="tituloPag">Dashboard</h1> <!-- Título da página -->
+            <div class="filter-section"> <!-- Seção para filtros de dados -->
+                <select id="filterSelect"> <!-- Dropdown para selecionar tipo de filtro -->
+                    <option value="maiorTemp">Maiores valores emitidos - Temperatura</option>
+                    <!-- Opção para filtrar por maiores valores -->
+                    <option value="menorTemp">Menores valores emitidos - Temperatura</option>
+                    <!-- Opção para filtrar por menores valores -->
+                    <option value="maioUmi">Maiores valores emitidos - Umidade</option>
+                    <!-- Opção para filtrar por maiores valores -->
+                    <option value="menorUmi">Menores valores emitidos - Umidade</option>
+                    <!-- Opção para filtrar por menores valores -->
+                </select>
+                <button onclick="applyFilters()">Filtrar</button> <!-- Botão para aplicar filtros -->
+                <br>
+                <input type="date" id="filterDate"> <!-- Campo para filtrar por data -->
+                <button onclick="applyFiltersDate()">Filtrar Data</button> <!-- Botão para aplicar filtro por data -->
+                <br>
+                <input type="time" id="filterTime"> <!-- Campo para filtrar por hora -->
+                <button onclick="applyFiltersTime()">Filtrar</button> <!-- Botão para aplicar filtro por hora -->
+                <br>
+                <button onclick="updateTable(true)">Atualizar tabela</button>
+                <!-- Botão para atualizar a tabela de dados -->
+            </div>
+        </div>
+        <div id="dataTableContainer"> <!-- Contêiner para a tabela de dados -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th> <!-- Cabeçalho da coluna para data -->
+                        <th>Hora</th> <!-- Cabeçalho da coluna para hora -->
+                        <th>Temperatura</th> <!-- Cabeçalho da coluna para valor -->
+                        <th>Umidade</th> <!-- Cabeçalho da coluna para valor -->
+                    </tr>
+                </thead>
+            </table>
+            <div class="areaTabela"> <!-- Área com rolagem para a tabela de dados -->
+                <table id="dataTable"> <!-- Tabela de dados -->
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script> <!-- Importa o arquivo JavaScript para interação -->
+</body>
+
+</html>
